@@ -1,0 +1,21 @@
+#!/bin/bash
+set -eo pipefail
+
+if [ "$#" -lt 2 ]; then
+    echo "usage: unmount-iscsi <portal> <target> [MOUNT_POINT] [MOUNT_POINT] ..."
+    exit 1
+fi
+
+PORTAL=$1
+shift;
+TARGET=$1
+shift;
+
+MOUNT_POINTS=("$@")
+
+for MOUNT_POINT in "${MOUNT_POINTS[@]}"; do
+    umount "$MOUNT_POINT"
+    echo "unmounted $MOUNT_POINT"
+done
+
+iscsiadm -m node --portal $PORTAL --target $TARGET --logout

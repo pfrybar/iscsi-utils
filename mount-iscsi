@@ -1,0 +1,37 @@
+#!/bin/bash
+set -eo pipefail
+
+if [ "$#" -lt 2 ]; then
+    echo "usage: mount-iscsi <portal> <target> [<UUID>:<MOUNT_POINT>:[MOUNT_OPTIONS]] [<UUID>:<MOUNT_POINT>:[MOUNT_OPTIONS]] ..."
+    exit 1
+fi
+
+PORTAL=$1
+shift;
+TARGET=$1
+shift;
+
+MOUNTS=("$@")
+
+iscsiadm -m node --portal $PORTAL --target $TARGET --login
+
+for MOUNT in "${MOUNTS[@]}"; do
+    IFS=':' read -a OPTS <<< "$MOUNT"
+    UUID=${OPTS[0]}
+    MOUNT_POINT=${OPTS[1]}
+    MOUNT_OPTS=${OPTS[2]}
+
+    # need to wait for the partition to show up
+    while ! blkid --uuid $UUID > /dev/null; do
+        echo "waiting for partition ($UUID) to show up..."
+        sleep 1
+    done
+
+    if [ -z "$MOUNT_OPTS" ]; then
+        mount UUID=$UUID "$MOUNT_POINT"
+    else
+        mount UUID=$UUID -o "$MOUNT_OPTS" "$MOUNT_POINT"
+    fi
+
+    echo "mounted $UUID to $MOUNT_POINT"
+done
