@@ -13,6 +13,7 @@ shift;
 
 MOUNTS=("$@")
 
+iscsiadm -m node --portal $PORTAL --target $TARGET -o new
 iscsiadm -m node --portal $PORTAL --target $TARGET --login
 
 for MOUNT in "${MOUNTS[@]}"; do

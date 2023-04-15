@@ -19,3 +19,4 @@ for MOUNT_POINT in "${MOUNT_POINTS[@]}"; do
 done
 
 iscsiadm -m node --portal $PORTAL --target $TARGET --logout
+iscsiadm -m node --portal $PORTAL --target $TARGET -o delete
